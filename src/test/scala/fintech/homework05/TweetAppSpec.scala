@@ -27,7 +27,8 @@ class TweetAppSpec extends FlatSpec with Matchers {
   it should "correct like tweet" in {
     val tweetApi = new TweetApi(new LocalStorage)
 
-    tweetApi.createTweet(CreateTweetRequest(text1, userName)) match {
+    val response = tweetApi.createTweet(CreateTweetRequest(text1, userName))
+    response match {
       case Success(tweet) =>
         inside(tweetApi.likeTweet(LikeRequest(tweet.id))) {
           case Success(tweetAfterLike) =>
@@ -45,7 +46,9 @@ class TweetAppSpec extends FlatSpec with Matchers {
 
   it should "correct return tweet by id" in {
     val tweetApi = new TweetApi(new LocalStorage)
-    tweetApi.createTweet(CreateTweetRequest(text1, userName)) match {
+
+    val response = tweetApi.createTweet(CreateTweetRequest(text1, userName))
+    response match {
       case Success(tweet) =>
         val successTweet2 = tweetApi.getTweet(GetTweetRequest(tweet.id))
         successTweet2 should matchPattern { case Success(_) => }
