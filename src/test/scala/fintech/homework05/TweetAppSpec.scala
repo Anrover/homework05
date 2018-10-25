@@ -4,7 +4,6 @@ import Inside._
 
 class TweetAppSpec extends FlatSpec with Matchers {
   val text1 = "Hello, Vasya #qwe#abc dfsaf #qwer123@mail_ru.com"
-  val bigText: String = "abc"*300
   val userName = "vova"
 
   "TweetApi" should "correct create tweet" in {
@@ -17,11 +16,14 @@ class TweetAppSpec extends FlatSpec with Matchers {
       `text1`, Seq("#qwe", "#abc", "#qwer123@mail_ru"), _, 0) => }
     }
   }
-  it should "return error, if length Text > MaxLenTweet" in {
+  it should "return error, when create tweet, if length Text > MaxLenTweet" in {
     val tweetApi = new TweetApi(new LocalStorage)
+    val messageError = "The text length has been exceeded"
+    val bigText: String = "abc"*300
 
-    tweetApi.createTweet(CreateTweetRequest(bigText, userName)) should
-      matchPattern { case Error(_) => }
+    val response = tweetApi.createTweet(CreateTweetRequest(bigText, userName))
+    response should matchPattern { case Error(_) => }
+    inside(response) { case Error(message) => message should be (messageError) }
   }
 
   it should "correct like tweet" in {
@@ -32,16 +34,19 @@ class TweetAppSpec extends FlatSpec with Matchers {
       case Success(tweet) =>
         inside(tweetApi.likeTweet(LikeRequest(tweet.id))) {
           case Success(tweetAfterLike) =>
-            tweetAfterLike should be (Tweet(tweet.id, tweet.user, tweet.text,
-              tweet.hashTags, tweet.createdAt, tweet.likes + 1))
+            tweetAfterLike should be (tweet.copy(likes = tweet.likes + 1))
         }
       case _ => throw new Exception("Something went wrong")
     }
   }
   it should "return error, when like tweet, if tweet with this id does not exist in Storage" in {
     val tweetApi = new TweetApi(new LocalStorage)
+    val nonexistentId = "123"
+    val messageError = s"No tweet for id: $nonexistentId"
 
-    tweetApi.likeTweet(LikeRequest("1244121")) should matchPattern { case Error(_) => }
+    val response = tweetApi.likeTweet(LikeRequest(nonexistentId))
+    response should matchPattern { case Error(_) => }
+    inside(response) { case Error(message) => message should be (messageError) }
   }
 
   it should "correct return tweet by id" in {
@@ -58,7 +63,11 @@ class TweetAppSpec extends FlatSpec with Matchers {
   }
   it should "return error, when getting tweet, if tweet with this id does not exist in Storage" in {
     val tweetApi = new TweetApi(new LocalStorage)
+    val nonexistentId = "1244121"
+    val messageError = s"No tweet for id: $nonexistentId"
 
-    tweetApi.getTweet(GetTweetRequest("1244121")) should matchPattern { case Error(_) => }
+    val response = tweetApi.getTweet(GetTweetRequest(nonexistentId))
+    response should matchPattern { case Error(_) => }
+    inside(response) { case Error(message) => message should be (messageError) }
   }
 }

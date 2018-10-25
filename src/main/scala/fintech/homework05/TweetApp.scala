@@ -89,8 +89,7 @@ class TweetApi(storage: TweetStorage) {
   def likeTweet(request: LikeRequest): Result[Tweet] =
     storage.getTweet(request.id) match {
       case Success(tweet) =>
-        storage.updateTweet(Tweet(tweet.id, tweet.user, tweet.text,
-          tweet.hashTags, tweet.createdAt, tweet.likes + 1))
+        storage.updateTweet(tweet.copy(likes = tweet.likes + 1))
       case Error(message) => Error(message)
     }
 
